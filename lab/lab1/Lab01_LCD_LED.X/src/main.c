@@ -24,10 +24,14 @@ int main(){
     // Clear the Screen and reset the cursor
     lcd_clear();
     lcd_locate(0, 0);
-    
+   
     // Print Hello World
-    lcd_printf("Hello World!");
-    
+    lcd_printf("Dian Yuan");
+    lcd_locate(0, 1);
+    lcd_printf("Zhelin Yang");
+    uint8_t count = 0;
+    lcd_locate(0, 2);
+   
     // Stop
     while(1)
         ;
