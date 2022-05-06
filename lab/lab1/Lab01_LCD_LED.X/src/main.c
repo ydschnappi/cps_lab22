@@ -17,6 +17,7 @@
 #pragma config FWDTEN = OFF
 uint8_t COUNT = 0;
 
+// Function to initialize 1 second Timer
 void timer_1_init(){
     __builtin_write_OSCCONL(OSCCONL | 2);
     T1CONbits.TON = 0; //Disable Timer
@@ -30,6 +31,8 @@ void timer_1_init(){
     IEC0bits.T1IE = 1;// Enable Timer1 interrupt
     T1CONbits.TON = 1;// Start Timer
 }
+
+// Function to print the name of the group memeber
 void name_print(){
     lcd_locate(0, 0);
     lcd_printf("Zhelin Yang");
@@ -37,6 +40,7 @@ void name_print(){
     lcd_printf("Dian Yuan");
 }
 
+// Input a decimal number and light the LED
 void led_print(uint8_t num){
         LED5_PORT = num % 2;
         num/=2;
@@ -50,6 +54,7 @@ void led_print(uint8_t num){
         num/=2;
 }
 
+// Interupt programm
 void __attribute__((__interrupt__)) _T1Interrupt(void)
 {
     COUNT++;
