@@ -97,8 +97,9 @@ void timer_initialize()
     
 }
 
-void set_Voltage(float v){
-    
+void set_Voltage(uint16_t V){
+    PORTD &= ~BV(8); 
+    DAC_SDI_PORT = V;
 }
 
 // interrupt service routine?
@@ -109,19 +110,19 @@ void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
     switch(count)
         case 1:
             //2,5v
-            set_Voltage(2.5);
+            set_Voltage(0x93E8);//2500
             LED1_PORT ^= 0x01;
             IFS0bits.T2IF = 0;
             break;
         case 5:
             //3,5v
-            set_Voltage(3.5);
+            set_Voltage(0x93E8);//3500
             LED1_PORT ^= 0x01;
             IFS0bits.T2IF = 0;
             break;
         case 7:
             //1v
-            set_Voltage(1.0);
+            set_Voltage(0x93E8);
             count = 0;
             
             LED1_PORT ^= 0x01;
