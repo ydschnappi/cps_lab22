@@ -97,21 +97,18 @@ void timer_loop()
     
     while(1){
         if (iteration == 2000){
-            // uint16_t temp = TMR3;
+            uint16_t temp = TMR3; // store the value of TMR3 in time
             lcd_locate(0, 2);
-            lcd_printf("%d, %.3f", TMR3,TMR3/12800.0); 
-            // lcd_locate(0, 3);
-            // lcd_printf("%.3f",temp/12800.0); //
+            lcd_printf("Cycles:%d", temp);
+            lcd_locate(0, 3);
+            lcd_printf("Period:%.3f ms", temp/12800.0);
             iteration = 0;
             lcd_locate(0, 4);
             lcd_printf("%02d:%02d:%03d",min,sec,millisec);  
             LED3_PORT ^= BV(0);
             TMR3 = 0x00;
-            IFS0bits.T3IF = 0;
-            
+            IFS0bits.T3IF = 0; 
         }
-        
-        // nothing happen
         iteration ++;   
     }
     
@@ -123,7 +120,7 @@ void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
     LED2_PORT ^= BV(0);
     IFS0bits.T1IF = 0;
     sec = sec + 1;
-    if (sec / 60){
+    if (sec == 60){
         sec= 0;
         min++;
     }
@@ -134,7 +131,7 @@ void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T2Interrupt(void)
   LED1_PORT ^= 0x01;
   IFS0bits.T2IF = 0;
   
-  millisec = millisec + 2;  // 0 ms , 1st IT = 2ms, 2nd IT = 2ms * 2 ..... 
+  millisec = millisec + 2;  
   if(millisec == 1000){
       millisec = 0;
   }
