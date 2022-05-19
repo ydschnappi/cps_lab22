@@ -117,7 +117,7 @@ void timer_loop()
 
 void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
 { // invoked every ??
-    LED2_PORT ^= BV(0);
+    LED2_PORT ^= BV(0); 
     IFS0bits.T1IF = 0;
     sec = sec + 1;
     if (sec == 60){
