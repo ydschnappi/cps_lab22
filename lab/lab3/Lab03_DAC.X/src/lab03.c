@@ -87,9 +87,9 @@ void timer_initialize()
     T1CONbits.TON = 0; //Disable Timer
     T1CONbits.TCS = 1; //Select external clock
     T1CONbits.TSYNC = 0; //Disable Synchronization
-    T1CONbits.TCKPS = 0b11; //Select 1:1 Prescaler
+    T1CONbits.TCKPS = 0b00; //Select 1:1 Prescaler
     TMR1 = 0x00; //Clear timer register
-    PR1 = 64; //Load the period value
+    PR1 = 32767; //Load the period value
     IPC0bits.T1IP = 0x01; // Set Timer1 Interrupt Priority Level
     IFS0bits.T1IF = 0; // Clear Timer1 Interrupt Flag
     IEC0bits.T1IE = 1;// Enable Timer1 interrupt
@@ -98,8 +98,19 @@ void timer_initialize()
 }
 
 void set_Voltage(uint16_t V){
-    PORTD &= ~BV(8); 
-    DAC_SDI_PORT = V;
+    int i=0;
+    PORTD &= ~BV(8); // CS
+    for(i=0; i<16; i++){
+        PORTB &= ~BV(11);
+        PORTB &= ~BV(10);
+        Nop();
+        PORTB |= (V & BV(i)) >> i << 10;
+        PORTB |= BV(11);
+    }
+    PORTD |= BV(8); // CS
+        
+    // PORTD &= ~BV(8); 
+    // DAC_SDI_PORT = V;
 }
 
 // interrupt service routine?
@@ -107,28 +118,39 @@ void set_Voltage(uint16_t V){
 void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
 { // invoked every ??
     count++;
-    switch(count)
+    switch(count) {
         case 1:
-            //2,5v
-            set_Voltage(0x93E8);//2500
+            //1v
+            // set_Voltage(1000);
             LED1_PORT ^= 0x01;
+            lcd_printf("1");
+            IFS0bits.T2IF = 0;
+            //lcd_printf("1");
+            break;
+        case 2:
+            //2,5v
+            //set_Voltage(2500);//2500
+            LED1_PORT ^= 0x01;
+            lcd_printf("2");
             IFS0bits.T2IF = 0;
             break;
-        case 5:
+        case 6:
             //3,5v
-            set_Voltage(0x93E8);//3500
+            //set_Voltage(3500);//3500
+            // set_Voltage(0x93E8);//3500
             LED1_PORT ^= 0x01;
+            lcd_printf("6");
             IFS0bits.T2IF = 0;
             break;
         case 7:
-            //1v
-            set_Voltage(0x93E8);
+            // reset count
             count = 0;
-            
-            LED1_PORT ^= 0x01;
             IFS0bits.T2IF = 0;
-            
             break;
+        default:
+            IFS0bits.T1IF = 0;
+            break;
+    }
 }
 
 
@@ -144,11 +166,11 @@ void main_loop()
     lcd_printf("Group: 1");
     
     //first conversion  to 1v
-    set_Voltage(1);
+    // set_Voltage(1);
     
-    while(TRUE)
-    {
+    // while(TRUE)
+    // {
         
         // main loop code
-    }
+    // }
 }
