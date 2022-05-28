@@ -20,6 +20,7 @@
 // (LPRC can be disabled by clearing the SWDTEN bit in the RCON register)
 #pragma config FWDTEN = OFF
 
+
 int main(){
     //Init LCD and LEDs
     lcd_initialize();

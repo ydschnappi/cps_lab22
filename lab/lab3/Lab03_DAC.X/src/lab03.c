@@ -34,31 +34,32 @@
 uint8_t count = 0;
 
 void dac_initialize()
-{
+{   
+
     // set AN10, AN11 AN13 to digital mode
     SETBIT(DAC_SDI_AD1CFG); // set Pin to Digital
     SETBIT(DAC_SCK_AD1CFG); // set Pin to Digital
     SETBIT(DAC_LDAC_AD1CFG ); // set Pin to Digital
     SETBIT(DAC_SDI_AD2CFG); // set Pin to Digital
     SETBIT(DAC_SCK_AD2CFG); // set Pin to Digital
-    SETBIT(DAC_LDAC_AD2CFG ); // set Pin to Digital
+    SETBIT(DAC_LDAC_AD2CFG); // set Pin to Digital
    
     // this means AN10 will become RB10, AN11->RB11, AN13->RB13
     // see datasheet 11.3
-    
-    // set RD8, RB10, RB11, RB13 as output pins
-    CLEARBIT(DAC_CS_TRIS); // set Pin to Output
+    SETBIT(DAC_CS_TRIS);
     CLEARBIT(DAC_SDI_TRIS); // set Pin to Output
     CLEARBIT(DAC_SCK_TRIS); // set Pin to Output
     CLEARBIT(DAC_LDAC_TRIS); // set Pin to Output
     // set default state: /CS=high, SCK=high, SDI=high, /LDAC=high
-    PORTD |= BV(8); // CS
-    PORTB |= BV(11);//SCK
-    PORTB |= BV(10);
-    PORTB |= BV(13);
-    
-    
-    
+    // PORTD |= BV(8); // CS
+    SETBIT(DAC_CS_PORT);
+    // PORTB |= BV(11);//SCK
+    CLEARBIT(DAC_SCK_PORT);
+    // PORTB |= BV(10);
+    // PORTB |= BV(13);
+    SETBIT(DAC_LDAC_PORT);
+    CLEARBIT(DAC_SDI_PORT);
+
     
 }
 
@@ -87,9 +88,9 @@ void timer_initialize()
     T1CONbits.TON = 0; //Disable Timer
     T1CONbits.TCS = 1; //Select external clock
     T1CONbits.TSYNC = 0; //Disable Synchronization
-    T1CONbits.TCKPS = 0b00; //Select 1:1 Prescaler
+    T1CONbits.TCKPS = 0b11; //Select 1:1 Prescaler
     TMR1 = 0x00; //Clear timer register
-    PR1 = 32767; //Load the period value
+    PR1 = 64; //Load the period value
     IPC0bits.T1IP = 0x01; // Set Timer1 Interrupt Priority Level
     IFS0bits.T1IF = 0; // Clear Timer1 Interrupt Flag
     IEC0bits.T1IE = 1;// Enable Timer1 interrupt
@@ -98,17 +99,51 @@ void timer_initialize()
 }
 
 void set_Voltage(uint16_t V){
-    int i=0;
-    PORTD &= ~BV(8); // CS
-    for(i=0; i<16; i++){
-        PORTB &= ~BV(11);
-        PORTB &= ~BV(10);
+    
+    CLEARBIT(DAC_CS_PORT); // CS
+    Nop();
+    
+    CLEARBIT(DAC_SCK_PORT);
+    CLEARBIT(DAC_SDI_PORT);
+    SETBIT(DAC_SCK_PORT);
+    Nop();
+    
+    CLEARBIT(DAC_SCK_PORT);
+    CLEARBIT(DAC_SDI_PORT);
+    SETBIT(DAC_SCK_PORT);
+    Nop();
+    
+    CLEARBIT(DAC_SCK_PORT);
+    CLEARBIT(DAC_SDI_PORT);
+    SETBIT(DAC_SCK_PORT);  
+    Nop();
+    
+    CLEARBIT(DAC_SCK_PORT);
+    SETBIT(DAC_SDI_PORT);
+    SETBIT(DAC_SCK_PORT);
+    Nop();
+
+    
+    int i;
+    for(i=11; i>=0; i--){
+        CLEARBIT(DAC_SCK_PORT);
+        CLEARBIT(DAC_SDI_PORT);
         Nop();
         PORTB |= (V & BV(i)) >> i << 10;
-        PORTB |= BV(11);
+        SETBIT(DAC_SCK_PORT);
+        Nop();
     }
-    PORTD |= BV(8); // CS
-        
+    CLEARBIT(DAC_SDI_PORT);
+    Nop();
+    SETBIT(DAC_CS_PORT); // CS
+    CLEARBIT(DAC_LDAC_PORT);
+    Nop();
+    Nop();
+    Nop();
+    Nop();
+    SETBIT(DAC_LDAC_PORT);
+
+
     // PORTD &= ~BV(8); 
     // DAC_SDI_PORT = V;
 }
@@ -121,31 +156,30 @@ void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
     switch(count) {
         case 1:
             //1v
-            // set_Voltage(1000);
+            set_Voltage(1000); // 1000
             LED1_PORT ^= 0x01;
-            lcd_printf("1");
-            IFS0bits.T2IF = 0;
-            //lcd_printf("1");
+            lcd_printf("%d",count);
+            IFS0bits.T1IF = 0;
             break;
         case 2:
             //2,5v
-            //set_Voltage(2500);//2500
+            set_Voltage(2500);//2500
             LED1_PORT ^= 0x01;
-            lcd_printf("2");
-            IFS0bits.T2IF = 0;
+            lcd_printf("%d",count);
+            IFS0bits.T1IF = 0;
             break;
         case 6:
             //3,5v
-            //set_Voltage(3500);//3500
+            set_Voltage(3500);//3500
             // set_Voltage(0x93E8);//3500
             LED1_PORT ^= 0x01;
-            lcd_printf("6");
-            IFS0bits.T2IF = 0;
+            lcd_printf("%d",count);
+            IFS0bits.T1IF = 0;
             break;
         case 7:
             // reset count
             count = 0;
-            IFS0bits.T2IF = 0;
+            IFS0bits.T1IF = 0;
             break;
         default:
             IFS0bits.T1IF = 0;
@@ -168,9 +202,8 @@ void main_loop()
     //first conversion  to 1v
     // set_Voltage(1);
     
-    // while(TRUE)
-    // {
-        
-        // main loop code
-    // }
+    while(TRUE)
+    {
+       // main loop code
+    }
 }
