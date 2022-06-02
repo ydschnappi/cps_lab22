@@ -94,14 +94,15 @@ void timer_initialize()
     // The function __builtin_write_OSCCONL(val) does the unlocking sequence and
     // afterwards writes the value val to that register. (OSCCONL represents the
     // lower 8 bits of the register OSCCON)
+    //500ms timer
     __builtin_write_OSCCONL(OSCCONL | 2);
     // configure timer
     T1CONbits.TON = 0; //Disable Timer
     T1CONbits.TCS = 1; //Select external clock
     T1CONbits.TSYNC = 0; //Disable Synchronization
-    T1CONbits.TCKPS = 0b11; //Select 1:1 Prescaler
+    T1CONbits.TCKPS = 0b11; //Select 1:256 Prescaler
     TMR1 = 0x00; //Clear timer register
-    PR1 = 64; //Load the period value
+    PR1 = 64; //500ms Load the period value
     IPC0bits.T1IP = 0x01; // Set Timer1 Interrupt Priority Level
     IFS0bits.T1IF = 0; // Clear Timer1 Interrupt Flag
     IEC0bits.T1IE = 1;// Enable Timer1 interrupt
