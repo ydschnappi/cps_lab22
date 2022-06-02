@@ -33,7 +33,7 @@
 
 uint8_t count = 0;
 
-void dac_initialize1()
+void dac_initialize()
 {   
 
     // set AN10, AN11 AN13 to digital mode
@@ -49,7 +49,6 @@ void dac_initialize1()
     Nop();
     SETBIT(DAC_LDAC_AD2CFG); // set Pin to Digital
     Nop();
-   
     // this means AN10 will become RB10, AN11->RB11, AN13->RB13
     // see datasheet 11.3
     CLEARBIT(DAC_CS_TRIS);
@@ -73,57 +72,7 @@ void dac_initialize1()
     Nop();
     CLEARBIT(DAC_SDI_PORT);
     Nop();
-
-    
 }
-void dac_initialize()
-{
-    // set AN10, AN11 AN13 to digital mode
-    // this means AN10 will become RB10, AN11->RB11, AN13->RB13
-    // see datasheet 11.3
-    // set RD8, RB10, RB11, RB13 as output pins
-    SETBIT(DAC_SCK_AD1CFG); // set Pin to Digital
-    Nop();
-    SETBIT(DAC_SCK_AD2CFG); // set Pin to Digital
-    Nop();
-    CLEARBIT(DAC_SCK_TRIS); // set Pin to Output
-    Nop();
-    
-    SETBIT(DAC_SDI_AD1CFG); // set Pin to Digital
-    Nop();
-    SETBIT(DAC_SDI_AD2CFG); // set Pin to Digital
-    Nop();
-    CLEARBIT(DAC_SDI_TRIS); // set Pin to Output
-    Nop();
-
-    SETBIT(DAC_LDAC_AD1CFG); // set Pin to Digital
-    Nop();
-    SETBIT(DAC_LDAC_AD2CFG); // set Pin to Digital
-    Nop();
-    CLEARBIT(DAC_LDAC_TRIS); // set Pin to Output
-    Nop();
-
-    
-    //make cs as output
-    CLEARBIT(DAC_CS_TRIS);
-    Nop();
-
-    
-    
-    
-   
-    
-    // set default state: CS=??, SCK=??, SDI=??, LDAC=??
-    SETBIT(DAC_CS_PORT);
-    Nop();
-    CLEARBIT(DAC_SCK_PORT);
-    Nop();
-    CLEARBIT(DAC_SDI_PORT);
-    Nop();
-    SETBIT(DAC_LDAC_PORT);
-    Nop();    
-}
-
 
 /*
  * Timer code
@@ -160,69 +109,8 @@ void timer_initialize()
     
 }
 
-void set_Voltage2(uint16_t V){
-    
-    CLEARBIT(DAC_CS_PORT); // CS
-    Nop();
-    
-    CLEARBIT(DAC_SCK_PORT);
-    Nop();
-    CLEARBIT(DAC_SDI_PORT);
-    Nop();
-    SETBIT(DAC_SCK_PORT);
-    Nop();
-    
-    CLEARBIT(DAC_SCK_PORT);
-    Nop();
-    CLEARBIT(DAC_SDI_PORT);
-    Nop();
-    SETBIT(DAC_SCK_PORT);
-    Nop();
-    
-    CLEARBIT(DAC_SCK_PORT);
-    Nop();
-    CLEARBIT(DAC_SDI_PORT);
-    Nop();
-    SETBIT(DAC_SCK_PORT);  
-    Nop();
-    
-    CLEARBIT(DAC_SCK_PORT);
-    Nop();
-    SETBIT(DAC_SDI_PORT);
-    Nop();
-    SETBIT(DAC_SCK_PORT);
-    Nop();
 
-    
-    int i=11;
-    while(i>=0){
-        CLEARBIT(DAC_SCK_PORT);
-        Nop();
-        CLEARBIT(DAC_SDI_PORT);
-        Nop();
-        PORTB |= (V & BV(i)) >> i << 10;
-        SETBIT(DAC_SCK_PORT);
-        Nop();
-        i--;
-      
-    }
-   
-    SETBIT(DAC_CS_PORT); // CS
-    Nop();
-    CLEARBIT(DAC_SDI_PORT);
-    Nop();
-    CLEARBIT(DAC_LDAC_PORT);
-    Nop();
-    Nop();
-    SETBIT(DAC_LDAC_PORT);
-    Nop();
-
-
-    // PORTD &= ~BV(8); 
-    // DAC_SDI_PORT = V;
-}
-
-void set_Voltage(uint16_t voltage)
+void set_Voltage(uint16_t V)
 {
     // clear CS
     CLEARBIT(DAC_CS_PORT);
@@ -230,22 +118,15 @@ void set_Voltage(uint16_t voltage)
     int i=15;
     while(i>=0)
     {
-        uint16_t value = voltage&BV(i);
+        uint16_t value = V&BV(i);
         value = value >> i;
-        
-        
         DAC_SDI_PORT= value;
         Nop();
-         
-//        lcd_printf("%d", value);
-        
-        
         // toggle clock
         SETBIT(DAC_SCK_PORT);
         Nop();
         CLEARBIT(DAC_SCK_PORT);
         Nop(); 
-        
         i--;
     }
     
@@ -275,28 +156,25 @@ void __attribute__((__interrupt__, __shadow__, __auto_psv__)) _T1Interrupt(void)
     switch(count) {
         case 1:
             //1v
-            set_Voltage(14287); // 1000
+            set_Voltage(14287); // 1000mV Gain 1x
             LED1_PORT ^= 0x01;
-            lcd_printf("%d",count);
             IFS0bits.T1IF = 0;
             break;
         case 2:
             //2,5v
-            set_Voltage(6595);//2500
+            set_Voltage(6595);//2500mV 2x
             LED1_PORT ^= 0x01;
-            lcd_printf("%d",count);
             IFS0bits.T1IF = 0;
             break;
         case 6:
             //3,5v
-            set_Voltage(7595);//3500
+            set_Voltage(7595);//3500mV 2x
             LED1_PORT ^= 0x01;
-            lcd_printf("%d",count);
             IFS0bits.T1IF = 0;
             break;
         case 7:
             // reset count
-            count = 0;
+            count = 0;  //(6-7) 0,5s (7-1) 0,5s
             IFS0bits.T1IF = 0;
             break;
         default:
@@ -316,14 +194,12 @@ void main_loop()
     // print assignment information
     lcd_printf("Lab03: DAC");
     lcd_locate(0, 1);
-    lcd_printf("Group: 1");
+    lcd_printf("Session 3 Group: 1");
     
     //first conversion  to 1v
     // set_Voltage(1);
     
-    while(TRUE)
-    {
+    while(TRUE)    {
        // main loop code
-       // set_Voltage(7595);
     }
 }

@@ -31,7 +31,7 @@ int main(){
     lcd_locate(0, 0);
     
     // Initialize DAC
-    dac_initialize1();
+    dac_initialize();
     
     // Initialize Timers
     timer_initialize();
