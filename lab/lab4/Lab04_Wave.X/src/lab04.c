@@ -28,6 +28,8 @@
 #define TCKPS_64  0x02
 #define TCKPS_256 0x03
 
+#define Cal_PR3(prescale,sample_rate) 12800000/(prescale*sample_rate)   // 12.8Mhz, 256 prescaler
+
 uint16_t counter = 0;
 
 void timer_initialize()
@@ -38,7 +40,7 @@ void timer_initialize()
     T3CONbits.TCS = 0; //Select external clock
     T3CONbits.TCKPS = 0b11; //Select 1:256 Prescaler, 50000Hz
     TMR3 = 0x00; //Clear timer register
-    PR3 = 50000/SAMPLE_RATE; //Load the period value
+    PR3 = Cal_PR3(256, SAMPLE_RATE); //Load the period value
     IPC2bits.T3IP = 0x01; // Set Timer1 Interrupt Priority Level
     IFS0bits.T3IF = 0; // Clear Timer1 Interrupt Flag
     IEC0bits.T3IE = 1;// Enable Timer1 interrupt
