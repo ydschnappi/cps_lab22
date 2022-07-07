@@ -49,7 +49,7 @@ void Servo_Init(){
 	IFS0bits.T2IF = 0; // Clear Timer 2 Interrupt Flag
 	IEC0bits.T2IE = 0; // Disable Timer 2 interrupt
 	T2CONbits.TON = 1; // Start Timer
-	
+	__delay_ms(2000);
 }
 
 void Servo_Control (int axis, float duty_cycle){ 
@@ -92,23 +92,26 @@ uint16_t ADC_read (int axis){
 	if(axis == 0){  
 	
 		// read X axis
-		AD1CHS0bits.CH0SA = 0x0F; //set ADC1 to sample AN15
+
+		AD1CHS0bits.CH0SA = 0x000F; //set ADC1 to sample AN15
 		SETBIT(AD1CON1bits.SAMP); //start to sample
 		while(!AD1CON1bits.DONE); //wait for conversion to finish
+        CLEARBIT(AD1CON1bits.SAMP);
 		CLEARBIT(AD1CON1bits.DONE); //MUST HAVE! clear conversion done bit
         
-        return (ADC1BUF0);  //AN15
+        return ADC1BUF0;  //AN15
         //return 1;
     
 	} else {
         // read Y axis
 		
-		AD1CHS0bits.CH0SA = 0x09; //set ADC2 to sample AN9
+		AD1CHS0bits.CH0SA = 0x0009; //set ADC2 to sample AN9
 		SETBIT(AD1CON1bits.SAMP); //start to sample
 		while(!AD1CON1bits.DONE); //wait for conversion to finish
+        CLEARBIT(AD1CON1bits.SAMP);
 		CLEARBIT(AD1CON1bits.DONE); //MUST HAVE! clear conversion done bit
         
-        return (ADC1BUF0);  //AN9
+        return ADC1BUF0;  //AN9
   
 	}
 
@@ -122,19 +125,35 @@ uint16_t Touch_Read(int axis){
 
     if(axis == 0){  // read X axis
  
-		CLEARBIT(PORTEbits.RE1);
+
+		AD1CHS0bits.CH0SA = 0x000F; //set ADC1 to sample AN15
+        CLEARBIT(PORTEbits.RE1);
         SETBIT(PORTEbits.RE2);
         SETBIT(PORTEbits.RE3);
+		SETBIT(AD1CON1bits.SAMP); //start to sample
+		while(!AD1CON1bits.DONE); //wait for conversion to finish
+        CLEARBIT(AD1CON1bits.SAMP);
+		CLEARBIT(AD1CON1bits.DONE); //MUST HAVE! clear conversion done bit
         
-        return ADC_read(0);  //read ADC for AN15
+        return ADC1BUF0;  //AN15
+        
+        //return ADC_read(0);  //read ADC for AN15
     
 	} else {
         // read Y axis
+
+        AD1CHS0bits.CH0SA = 0x0009; //set ADC2 to sample AN9
         SETBIT(PORTEbits.RE1);
         CLEARBIT(PORTEbits.RE2);
         CLEARBIT(PORTEbits.RE3);
+		SETBIT(AD1CON1bits.SAMP); //start to sample
+		while(!AD1CON1bits.DONE); //wait for conversion to finish
+        CLEARBIT(AD1CON1bits.SAMP);
+		CLEARBIT(AD1CON1bits.DONE); //MUST HAVE! clear conversion done bit
         
-        return ADC_read(1);  //read ADC for AN9
+        return ADC1BUF0;  //AN9
+        
+        // return ADC_read(1);  //read ADC for AN9
     
 	}    
 }
@@ -212,10 +231,9 @@ void main_task(){
 // step 1
 Touch_Standby();
 Servo_Control(0, 0.9);  // 0.9 ms control X axis 0 degree
-
 Servo_Control(1, 0.9);  //0.9 mscontrol Y axis 0 degree
 __delay_ms(3000);
-lcd_locate(0, 4);
+lcd_locate(0, 3);
 lcd_printf("X-axis: %d, Y-axis: %d", Touch_Read(0), Touch_Read(1));
 __delay_ms(1000);
 
@@ -224,7 +242,7 @@ Touch_Standby();
 Servo_Control(0, 0.9);  // 0.9 ms control X axis 0 degree
 Servo_Control(1, 2.1);  //0.9 mscontrol Y axis 0 degree
 __delay_ms(3000);
-lcd_locate(0, 4);
+lcd_locate(0, 3);
 lcd_printf("X-axis: %d, Y-axis: %d", Touch_Read(0), Touch_Read(1));
 __delay_ms(1000);
 
@@ -233,7 +251,7 @@ Touch_Standby();
 Servo_Control(0, 2.1);  // 0.9 ms control X axis 0 degree
 Servo_Control(1, 2.1);  //0.9 mscontrol Y axis 0 degree
 __delay_ms(3000);
-lcd_locate(0, 4);
+lcd_locate(0, 3);
 lcd_printf("X-axis: %d, Y-axis: %d", Touch_Read(0), Touch_Read(1));
 __delay_ms(1000);
 
@@ -242,7 +260,7 @@ Touch_Standby();
 Servo_Control(0, 2.1);  // 0.9 ms control X axis 0 degree
 Servo_Control(1, 0.9);  //0.9 mscontrol Y axis 0 degree
 __delay_ms(3000);
-lcd_locate(0, 4);
+lcd_locate(0, 3);
 lcd_printf("X-axis: %d, Y-axis: %d", Touch_Read(0), Touch_Read(1));
 __delay_ms(1000);
 
