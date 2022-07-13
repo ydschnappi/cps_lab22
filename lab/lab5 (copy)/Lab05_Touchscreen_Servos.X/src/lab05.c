@@ -74,16 +74,22 @@ void Servo_Control (int axis, float duty_cycle){
 void Touch_Init(){
 
 		CLEARBIT(TRISEbits.TRISE1); // I/O pin set to output
+		nop();
 		CLEARBIT(TRISEbits.TRISE2); // I/O pin set to output
+		nop();
 		CLEARBIT(TRISEbits.TRISE3); // I/O pin set to output
+		nop();
 
 }
 
 void Touch_Standby(){
         
-    SETBIT(PORTEbits.RE1);
-    SETBIT(PORTEbits.RE2);
-    CLEARBIT(PORTEbits.RE3);
+	SETBIT(PORTEbits.RE1);
+	nop();
+    	SETBIT(PORTEbits.RE2);
+	nop();
+   	CLEARBIT(PORTEbits.RE3);
+	nop();
 		
 }
 
