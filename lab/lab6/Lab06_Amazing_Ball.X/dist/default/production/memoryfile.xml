@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+  <executable name="dist/default/production/Lab06_Amazing_Ball.X.production.cof">
+    <memory name="data">
+      <units>bytes</units>
+      <length>30720</length>
+      <used>388</used>
+      <free>30332</free>
+    </memory>
+    <memory name="program">
+      <units>bytes</units>
+      <length>261888</length>
+      <used>16539</used>
+      <free>245349</free>
+    </memory>
+  </executable>
+</project>
